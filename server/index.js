@@ -49,17 +49,13 @@ const seedAdmin = async () => {
 };
 
 // ── Seed Ryan (test leaderboard data) ────────────────────────────────────────
-const seedRyan = async () => {
+const seedCustomer = async (firstName, lastName, email, count) => {
   try {
-    let ryan = await User.findOne({ where: { email: 'ryan@test.com' } });
-    if (!ryan) {
-      const hashed = await bcrypt.hash('password123', 10);
-      ryan = await User.create({ firstName: 'Ryan', lastName: 'Johnson', email: 'ryan@test.com', password: hashed, role: 'customer', phone: '555-0100' });
-    }
-    let car = await Car.findOne({ where: { userId: ryan.id } });
-    if (!car) {
-      car = await Car.create({ userId: ryan.id, make: 'Toyota', model: 'Camry', year: 2022, color: 'Blue' });
-    }
+    const hashed = await bcrypt.hash('password123', 10);
+    let user = await User.findOne({ where: { email } });
+    if (!user) user = await User.create({ firstName, lastName, email, password: hashed, role: 'customer', phone: '555-0100' });
+    let car = await Car.findOne({ where: { userId: user.id } });
+    if (!car) car = await Car.create({ userId: user.id, make: 'Honda', model: 'Civic', year: 2021, color: 'Black' });
     const services = ['light', 'standard', 'premium'];
     const prices = { light: 100, standard: 150, premium: 250 };
     const slots = ['8:00 AM', '10:00 AM', '12:00 PM', '2:00 PM', '4:00 PM'];
@@ -68,19 +64,25 @@ const seedRyan = async () => {
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, '0');
     let created = 0;
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < count; i++) {
       const day = String(i + 1).padStart(2, '0');
-      const existing = await Appointment.findOne({ where: { customerId: ryan.id, date: `${year}-${month}-${day}` } });
+      const existing = await Appointment.findOne({ where: { customerId: user.id, date: `${year}-${month}-${day}` } });
       if (!existing) {
         const service = services[i % 3];
-        await Appointment.create({ customerId: ryan.id, carId: car.id, service, price: prices[service], date: `${year}-${month}-${day}`, timeSlot: slots[i % 5], status: statuses[i % 3] });
+        await Appointment.create({ customerId: user.id, carId: car.id, service, price: prices[service], date: `${year}-${month}-${day}`, timeSlot: slots[i % 5], status: statuses[i % 3] });
         created++;
       }
     }
-    if (created > 0) console.log(`Ryan seeded with ${created} appointments`);
+    if (created > 0) console.log(`${firstName} seeded with ${created} appointments`);
   } catch (err) {
-    console.error('Seed Ryan error:', err);
+    console.error(`Seed ${firstName} error:`, err);
   }
+};
+
+const seedRyan = async () => {
+  await seedCustomer('Ryan', 'Johnson', 'ryan@test.com', 20);
+  await seedCustomer('Jake', 'Williams', 'jake@test.com', 14);
+  await seedCustomer('Mia', 'Torres', 'mia@test.com', 9);
 };
 
 // ── Start ─────────────────────────────────────────────────────────────────────
