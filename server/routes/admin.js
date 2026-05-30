@@ -297,6 +297,48 @@ router.get('/schedule', async (req, res) => {
   }
 });
 
+// ── Leaderboard ───────────────────────────────────────────────────────────────
+// GET /api/admin/leaderboard?month=YYYY-MM
+router.get('/leaderboard', async (req, res) => {
+  try {
+    const { month } = req.query;
+    if (!month) return res.status(400).json({ error: 'month query parameter required (YYYY-MM)' });
+
+    const appointments = await Appointment.findAll({
+      where: {
+        status: { [Op.ne]: 'cancelled' },
+        date: { [Op.like]: `${month}%` },
+      },
+      include: [{ model: User, as: 'customer', attributes: ['id', 'firstName', 'lastName'] }],
+    });
+
+    const byCustomer = {};
+    for (const appt of appointments) {
+      const id = appt.customerId;
+      if (!byCustomer[id]) {
+        byCustomer[id] = {
+          id,
+          firstName: appt.customer?.firstName || '',
+          lastName: appt.customer?.lastName || '',
+          count: 0,
+          revenue: 0,
+        };
+      }
+      byCustomer[id].count++;
+      byCustomer[id].revenue += parseFloat(appt.price || 0);
+    }
+
+    const leaderboard = Object.values(byCustomer)
+      .sort((a, b) => b.count - a.count || b.revenue - a.revenue)
+      .slice(0, 15);
+
+    return res.json({ month, leaderboard });
+  } catch (err) {
+    console.error('Leaderboard error:', err);
+    return res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // ── Customers ─────────────────────────────────────────────────────────────────
 // GET /api/admin/customers
 router.get('/customers', async (req, res) => {

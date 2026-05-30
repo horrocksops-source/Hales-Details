@@ -12,6 +12,7 @@ import AdminDashboard from './pages/AdminDashboard.jsx'
 import AdminSchedule from './pages/AdminSchedule.jsx'
 import AdminAppointments from './pages/AdminAppointments.jsx'
 import AdminCustomers from './pages/AdminCustomers.jsx'
+import AdminLeaderboard from './pages/AdminLeaderboard.jsx'
 
 function Layout() {
   const { user } = useAuth()
@@ -62,6 +63,7 @@ function AppRoutes() {
         <Route path="/admin/schedule" element={<AdminSchedule />} />
         <Route path="/admin/appointments" element={<AdminAppointments />} />
         <Route path="/admin/customers" element={<AdminCustomers />} />
+        <Route path="/admin/leaderboard" element={<AdminLeaderboard />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
