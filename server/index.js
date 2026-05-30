@@ -4,7 +4,7 @@ const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 
-const { sequelize, User } = require('./db');
+const { sequelize, User, Car, Appointment } = require('./db');
 const authRoutes = require('./routes/auth');
 const customerRoutes = require('./routes/customer');
 const adminRoutes = require('./routes/admin');
@@ -48,6 +48,41 @@ const seedAdmin = async () => {
   }
 };
 
+// ── Seed Ryan (test leaderboard data) ────────────────────────────────────────
+const seedRyan = async () => {
+  try {
+    let ryan = await User.findOne({ where: { email: 'ryan@test.com' } });
+    if (!ryan) {
+      const hashed = await bcrypt.hash('password123', 10);
+      ryan = await User.create({ firstName: 'Ryan', lastName: 'Johnson', email: 'ryan@test.com', password: hashed, role: 'customer', phone: '555-0100' });
+    }
+    let car = await Car.findOne({ where: { userId: ryan.id } });
+    if (!car) {
+      car = await Car.create({ userId: ryan.id, make: 'Toyota', model: 'Camry', year: 2022, color: 'Blue' });
+    }
+    const services = ['light', 'standard', 'premium'];
+    const prices = { light: 100, standard: 150, premium: 250 };
+    const slots = ['8:00 AM', '10:00 AM', '12:00 PM', '2:00 PM', '4:00 PM'];
+    const statuses = ['completed', 'confirmed', 'pending'];
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    let created = 0;
+    for (let i = 0; i < 20; i++) {
+      const day = String(i + 1).padStart(2, '0');
+      const existing = await Appointment.findOne({ where: { customerId: ryan.id, date: `${year}-${month}-${day}` } });
+      if (!existing) {
+        const service = services[i % 3];
+        await Appointment.create({ customerId: ryan.id, carId: car.id, service, price: prices[service], date: `${year}-${month}-${day}`, timeSlot: slots[i % 5], status: statuses[i % 3] });
+        created++;
+      }
+    }
+    if (created > 0) console.log(`Ryan seeded with ${created} appointments`);
+  } catch (err) {
+    console.error('Seed Ryan error:', err);
+  }
+};
+
 // ── Start ─────────────────────────────────────────────────────────────────────
 const start = async () => {
   try {
@@ -58,6 +93,7 @@ const start = async () => {
     console.log('Database synced');
 
     await seedAdmin();
+    await seedRyan();
 
     app.listen(PORT, () => {
       console.log(`Gavin's Detailing server running on port ${PORT}`);
