@@ -409,4 +409,63 @@ router.get('/customers/:id', async (req, res) => {
   }
 });
 
+// ── Dev Seed ──────────────────────────────────────────────────────────────────
+// POST /api/admin/seed-ryan  (one-time use to seed test data)
+router.post('/seed-ryan', async (req, res) => {
+  try {
+    const bcrypt = require('bcryptjs');
+    const { Op: _Op } = require('sequelize');
+
+    let ryan = await User.findOne({ where: { email: 'ryan@test.com' } });
+    if (!ryan) {
+      ryan = await User.create({
+        firstName: 'Ryan',
+        lastName: 'Johnson',
+        email: 'ryan@test.com',
+        password: await bcrypt.hash('password123', 10),
+        role: 'customer',
+        phone: '555-0100',
+      });
+    }
+
+    let car = await Car.findOne({ where: { userId: ryan.id } });
+    if (!car) {
+      car = await Car.create({ userId: ryan.id, make: 'Toyota', model: 'Camry', year: 2022, color: 'Blue' });
+    }
+
+    const services = ['light', 'standard', 'premium'];
+    const prices = { light: 100, standard: 150, premium: 250 };
+    const slots = ['8:00 AM', '10:00 AM', '12:00 PM', '2:00 PM', '4:00 PM'];
+    const statuses = ['completed', 'confirmed', 'pending'];
+
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+
+    let created = 0;
+    for (let i = 0; i < 20; i++) {
+      const day = String(i + 1).padStart(2, '0');
+      const service = services[i % 3];
+      const existing = await Appointment.findOne({ where: { customerId: ryan.id, date: `${year}-${month}-${day}` } });
+      if (!existing) {
+        await Appointment.create({
+          customerId: ryan.id,
+          carId: car.id,
+          service,
+          price: prices[service],
+          date: `${year}-${month}-${day}`,
+          timeSlot: slots[i % 5],
+          status: statuses[i % 3],
+        });
+        created++;
+      }
+    }
+
+    return res.json({ message: `Done — ${created} appointments created for Ryan Johnson` });
+  } catch (err) {
+    console.error('Seed error:', err);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
