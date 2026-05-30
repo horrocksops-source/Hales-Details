@@ -88,14 +88,14 @@ function SideNavLink({ to, icon, children, end }) {
         padding: '10px 20px',
         marginBottom: '2px',
         borderRadius: '8px',
-        color: isActive ? '#38bdf8' : '#64748b',
+        color: isActive ? '#f97316' : '#64748b',
         fontWeight: 600,
         fontSize: '13px',
         textDecoration: 'none',
         transition: 'all 0.15s',
         position: 'relative',
-        background: isActive ? 'rgba(56,189,248,0.08)' : 'transparent',
-        borderLeft: isActive ? '3px solid #38bdf8' : '3px solid transparent',
+        background: isActive ? 'rgba(249,115,22,0.08)' : 'transparent',
+        borderLeft: isActive ? '3px solid #f97316' : '3px solid transparent',
       })}
     >
       {icon}
@@ -120,7 +120,7 @@ export default function Sidebar() {
     <aside style={{
       width: '240px',
       minHeight: '100vh',
-      background: '#0d0d18',
+      background: '#000000',
       borderRight: '1px solid var(--border)',
       display: 'flex',
       flexDirection: 'column',
@@ -135,7 +135,7 @@ export default function Sidebar() {
           <div style={{
             width: '42px',
             height: '42px',
-            background: '#38bdf8',
+            background: '#f97316',
             borderRadius: '12px',
             display: 'flex',
             alignItems: 'center',
@@ -196,7 +196,7 @@ export default function Sidebar() {
             justifyContent: 'center',
             fontSize: '13px',
             fontWeight: 700,
-            color: '#38bdf8',
+            color: '#f97316',
             flexShrink: 0,
           }}>
             {user?.firstName?.[0]}{user?.lastName?.[0]}
