@@ -58,8 +58,12 @@ export default function AdminSchedule() {
   useEffect(() => {
     setLoading(true)
     setError('')
-    apiFetch(`/admin/schedule/week?start=${toDateStr(weekStart)}`)
-      .then(d => setAppointments(Array.isArray(d.appointments) ? d.appointments : []))
+    const dates = getWeekDates(weekStart).map(toDateStr)
+    Promise.all(dates.map(d => apiFetch(`/admin/schedule?date=${d}`)))
+      .then(results => {
+        const all = results.flatMap(r => Array.isArray(r.appointments) ? r.appointments : [])
+        setAppointments(all)
+      })
       .catch(err => setError(err.message))
       .finally(() => setLoading(false))
   }, [weekStart])
