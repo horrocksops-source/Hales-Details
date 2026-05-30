@@ -245,6 +245,33 @@ router.put('/appointments/:id', async (req, res) => {
   }
 });
 
+// ── Week Schedule ─────────────────────────────────────────────────────────────
+// GET /api/admin/schedule/week?start=YYYY-MM-DD
+router.get('/schedule/week', async (req, res) => {
+  try {
+    const { start } = req.query;
+    if (!start) return res.status(400).json({ error: 'start query parameter required (YYYY-MM-DD)' });
+
+    const startDate = new Date(start + 'T00:00:00');
+    const endDate = new Date(startDate);
+    endDate.setDate(endDate.getDate() + 6);
+
+    const appointments = await Appointment.findAll({
+      where: { date: { [Op.between]: [start, toDateStr(endDate)] } },
+      include: [
+        { model: User, as: 'customer', attributes: ['id', 'firstName', 'lastName', 'email', 'phone'] },
+        { model: Car, as: 'car' },
+      ],
+      order: [['date', 'ASC'], ['timeSlot', 'ASC']],
+    });
+
+    return res.json({ start, end: toDateStr(endDate), appointments });
+  } catch (err) {
+    console.error('Week schedule error:', err);
+    return res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // ── Schedule ──────────────────────────────────────────────────────────────────
 // GET /api/admin/schedule?date=YYYY-MM-DD
 router.get('/schedule', async (req, res) => {
