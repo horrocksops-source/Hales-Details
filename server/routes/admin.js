@@ -304,10 +304,16 @@ router.get('/leaderboard', async (req, res) => {
     const { month } = req.query;
     if (!month) return res.status(400).json({ error: 'month query parameter required (YYYY-MM)' });
 
+    const [year, mon] = month.split('-').map(Number);
+    const start = `${month}-01`;
+    const nextYear = mon === 12 ? year + 1 : year;
+    const nextMon = mon === 12 ? '01' : String(mon + 1).padStart(2, '0');
+    const end = `${nextYear}-${nextMon}-01`;
+
     const appointments = await Appointment.findAll({
       where: {
         status: { [Op.ne]: 'cancelled' },
-        date: { [Op.like]: `${month}%` },
+        date: { [Op.gte]: start, [Op.lt]: end },
       },
       include: [{ model: User, as: 'customer', attributes: ['id', 'firstName', 'lastName'] }],
     });
